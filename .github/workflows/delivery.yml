@@ -1,10 +1,8 @@
-name: Python Delivery
-
+name: Python CICD for delivery
 on:
   push:
     tags:
-      - v*
- 
+      - 'v*'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,7 +20,7 @@ jobs:
     - name: Checkout Own Repo to cloud
       uses: actions/checkout@v2.4.0
       with: 
-        repository: lowkh/HelloWorldDemoT02
+        repository: lowkh/HelloWorldDemoT01
     
     - name: Checkout private repo remotely
       uses: actions/checkout@v2
@@ -58,7 +56,8 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         files: report.xml
-  delivery:
+        
+  release:
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -71,31 +70,28 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest pytest-cov
-        
     - name: Set environment variables for version number
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - name: Echo Version Tag
       run: |
         echo $RELEASE_VERSION
-        echo ${{ env.RELEASE_VERSION }}
+        echo ${{ env.RELEASE_VERSION }}    
     - name: Create Download Directory
-      run: mkdir downloads     
+      run: mkdir downloads
+
     - name: Create docs
       run: |
         python -m pydoc -w ./
-        mv *.html ./downloads     
- 
+        mv *.html ./downloads
     - name: upload documents
       uses: actions/upload-artifact@v2
       with:
         name: assetDocuments
-        path: downloads
-    
+        path: downloads      
     - name: Download Content
       uses: actions/download-artifact@v2
       with:
-        name: assetDocuments
-
+        name: assetDocuments        
     - name: Create GitHub release
       id: create-new-release
       uses: actions/create-release@v1
@@ -103,12 +99,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ env.RELEASE_VERSION }}
-        release_name: Release ${{ env.RELEASE_VERSION }}
+        release_name: Release ${{ env.RELEASE_VERSION }}      
     - name: Archive site content
       uses: thedoctor0/zip-release@master
       with:
-        filename: content.zip      
-  
+        filename: content.zip
     - name: Upload release asset
       uses: actions/upload-release-asset@v1
       env:
@@ -117,7 +112,4 @@ jobs:
         upload_url: ${{ steps.create-new-release.outputs.upload_url }}
         asset_path: ./content.zip
         asset_name: ${{ env.RELEASE_VERSION }}.zip
-        asset_content_type: application/zip   
-        
-        
-        
+        asset_content_type: application/zip
