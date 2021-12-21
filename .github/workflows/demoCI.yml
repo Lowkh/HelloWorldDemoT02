@@ -25,9 +25,10 @@ jobs:
         repository: lowkh/HelloWorldDemoT02
     
     - name: Checkout private repo remotely
-      uses: actions/checkout@v2
+      uses: actions/checkout@v1
       with:
         repository: lowkh2/DevOpsQARepo
+        ref: refs/heads/main
         path: tests
         token: ${{ secrets.QA_REMOTE }}
     - name: Linter Check with Flake8
